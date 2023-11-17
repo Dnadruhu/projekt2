@@ -16,16 +16,44 @@ void mapInit(Map *mapa)
 
     if (subor != NULL)
     {
-        char buffer[mapa -> rows][mapa -> cols];
+        char buffer[mapa->cols];
         if (fgets(buffer, sizeof(buffer), subor) != NULL)
         {
-            mapa -> rows = buffer[0][0];
-            mapa -> cols = buffer[0][2];
-            printf("Velkost pola: %s", buffer);
+            mapa->rows = atoi(&buffer[0]);
+            mapa->cols = atoi(&buffer[2]);
+            printf("Velkost pola: %s\n",buffer);
+
+            mapa->cells = malloc(mapa->rows * mapa->cols * sizeof(unsigned char));
+
+            for (int i = 0; i < mapa->rows; i++)
+            {
+                if (fgets(buffer, sizeof(buffer), subor) != NULL)
+                {
+                    for (int j = 0; j < mapa->cols; j++)
+                    {
+                        mapa->cells[i * mapa->cols + j] = atoi(&buffer[2 * j]);
+                    }
+                }
+                else
+                {
+                    fprintf(stderr, "Chyba pri citani zo suboru: %s\n", bludisko);
+                    free(mapa->cells);
+                    exit(1);
+                }
+            }
+            for (int i = 0; i < mapa->rows; i++)
+            {
+                for (int j = 0; j < mapa->cols; j++)
+                {
+                    printf("%hhu ", mapa->cells[i * mapa->cols + j]);
+                }
+                printf("\n");
+            }
         }
         else
         {
             fprintf(stderr, "Chyba pri citani zo suboru: %s\n", bludisko);
+            exit(1);
         }
 
         fclose(subor);
