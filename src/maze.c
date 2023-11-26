@@ -10,12 +10,44 @@ typedef struct
     unsigned char *cells;
 } Map;
 
-void checkArgs(int argc, char *argv, char *nazovSuboru){
+void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru, Map mapa);
+
+int mapInit(Map *mapa, char *nazovSuboru);
+
+bool isborder(Map *mapa, int r, int c, int border);
+
+int start_border(Map *mapa, int r, int c, int leftright);
+
+//void pathFinder();
+
+int main(int argc, char *argv[])
+{
+    printf("args count %d\n", argc);
+    char nazovSuboru[100];
+    int r,c;
+    int leftright;
+    int border;
+    Map mapa;
+
+    checkArgs(argc, *argv, r, c, leftright, nazovSuboru, mapa);
+    mapInit(&mapa, nazovSuboru);
+    //pathFinder();
+    
+    free(mapa.cells);
+    return 0;
+}
+
+void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru, Map mapa)
+{
+    r = 2;
+    printf("r: %d", r);
     if (argc > 1)
     {
+        
         int cnt = 0;
         char argument[20];
         int j = 0;
+
         for (int i = 1; i < 100 && cnt < argc; i++)
         {
             if (argv[i] != '\0')
@@ -23,22 +55,31 @@ void checkArgs(int argc, char *argv, char *nazovSuboru){
                 argument[j] = argv[i];
                 j++;
             } else {
+
                 argument[j] = '\0';
                 cnt++;
                 j = 0;
-                printf("printing argument: %s\n", argument);
+                //printf("printing argument: %s\n", argument);
+
                 if (!(strcmp("--help", argument)))
                 {
-                    printf("i will help you blah blah blah\n");
+                    printf("do this blah blah blah\n");
                     ///TO DO
                 } else if (!(strcmp("--test", argument)))
-                {
-                    /* code */
-                } else if (strstr(argument, ".txt") != NULL)
-                {
-                    strcpy(nazovSuboru, argument);
+                { 
+                    ///TO DO  
+                } else if (!(strcmp("--lpath", argument)))
+                { 
+                    leftright = 0; // pravidlo lavej ruky
+                } else if (!(strcmp("--rpath", argument)))
+                { 
+                    leftright = 1; //pravidlo pravej ruky
                 }
-                  
+                if (strstr(argument, ".txt") != NULL)
+                    {
+                        strcpy(nazovSuboru, argument);
+                        printf("file name valid\n");
+                } 
             }
         }
     } else {
@@ -47,19 +88,20 @@ void checkArgs(int argc, char *argv, char *nazovSuboru){
     }
 }
 
-void mapInit(Map *mapa, char *nazovSuboru)
+int mapInit(Map *mapa, char *nazovSuboru)
 {
-    printf("tu: %s\n", nazovSuboru);
     FILE *subor = fopen(nazovSuboru, "r");
 
     if (subor != NULL)
     {
+
         char buffer[sizeof(mapa->cols)*sizeof(mapa->rows)];
+        
         if (fgets(buffer, sizeof(buffer), subor) != NULL)
         {
             mapa->rows = atoi(&buffer[0]);
             mapa->cols = atoi(&buffer[2]);
-            printf("Velkost pola: %s\n",buffer);
+            //printf("Velkost pola: %s\n",buffer);
 
             mapa->cells = malloc(mapa->rows * mapa->cols * sizeof(unsigned char));
 
@@ -76,22 +118,24 @@ void mapInit(Map *mapa, char *nazovSuboru)
                 {
                     fprintf(stderr, "Chyba pri citani zo suboru: %s\n", nazovSuboru);
                     free(mapa->cells);
-                    exit(1);
+                    return 0;
                 }
             }
-            for (int i = 0; i < mapa->rows; i++)
+            return 1;
+            /*for (int i = 0; i < mapa->rows; i++)
             {
                 for (int j = 0; j < mapa->cols; j++)
                 {
                     printf("%hhu ", mapa->cells[i * mapa->cols + j]);
                 }
                 printf("\n");
-            }
+            }// NEVYPISE NIC KVOLI RETURN 1
+            */
         }
         else
         {
             fprintf(stderr, "Chyba pri citani zo suboru: %s\n", nazovSuboru);
-            exit(1);
+            return 0;
         }
 
         fclose(subor);
@@ -99,21 +143,26 @@ void mapInit(Map *mapa, char *nazovSuboru)
     else
     {
         fprintf(stderr, "Chyba pri otvarani suboru: %s\n", nazovSuboru);
-        exit(1);
+        return 0;
     }
 }
 
-bool isborder(Map *map, int r, int c, int border);
+bool isborder(Map *mapa, int r, int c, int border) {
+    /*
+    //{1,3,5,7} lava hranica border == 0
+    //{4,5,6,7} hornadolna hranica border == 1
+    //{2,3,6,7} prava hranica border == 2
+    */
+    unsigned char cell = mapa->cells[r * mapa->cols + c];
+    if (border == 0 && (cell == 1 || cell == 3 || cell == 5 || cell == 7)) {
+        return true;
+    } else if (border == 1 && (cell == 4 || cell == 5 || cell == 6 || cell == 7)) {
+        return true;
+    } else if (border == 2 && (cell == 2 || cell == 3 || cell == 6 || cell == 7)) {
+        return true;
+    }
+}
 
-int start_border(Map *map, int r, int c, int leftright);
-
-int main(int argc, char *argv[])
-{
-    printf("args count %d\n", argc);
-    char nazovSuboru[100];
-    checkArgs(argc, *argv, nazovSuboru);
-    Map mapa;
-    //printf("%s", nazovSuboru);
-    mapInit(&mapa, nazovSuboru);
-    return 0;
+int start_border(Map *mapa, int r, int c, int leftright) {
+    //TODO
 }
