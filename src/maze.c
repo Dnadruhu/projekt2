@@ -10,7 +10,7 @@ typedef struct
     unsigned char *cells;
 } Map;
 
-void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru, Map mapa);
+void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru);
 
 int mapInit(Map *mapa, char *nazovSuboru);
 
@@ -24,12 +24,13 @@ int main(int argc, char *argv[])
 {
     printf("args count %d\n", argc);
     char nazovSuboru[100];
-    int r,c;
-    int leftright;
-    int border;
+    int r = 0;
+    int c = 0;
+    int leftright = 0;
+    //int border;
     Map mapa;
 
-    checkArgs(argc, *argv, r, c, leftright, nazovSuboru, mapa);
+    checkArgs(argc, *argv, r, c, leftright, nazovSuboru);
     mapInit(&mapa, nazovSuboru);
     //pathFinder();
     
@@ -37,10 +38,10 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru, Map mapa)
+void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru)
 {
-    r = 2;
-    printf("r: %d", r);
+    /*r = 2;
+    printf("r: %d", r);*/
     if (argc > 1)
     {
         
@@ -121,8 +122,8 @@ int mapInit(Map *mapa, char *nazovSuboru)
                     return 0;
                 }
             }
-            return 1;
-            /*for (int i = 0; i < mapa->rows; i++)
+            //return 1;
+            for (int i = 0; i < mapa->rows; i++)
             {
                 for (int j = 0; j < mapa->cols; j++)
                 {
@@ -130,7 +131,8 @@ int mapInit(Map *mapa, char *nazovSuboru)
                 }
                 printf("\n");
             }// NEVYPISE NIC KVOLI RETURN 1
-            */
+            return 1;
+            
         }
         else
         {
@@ -161,8 +163,60 @@ bool isborder(Map *mapa, int r, int c, int border) {
     } else if (border == 2 && (cell == 2 || cell == 3 || cell == 6 || cell == 7)) {
         return true;
     }
+    printf("case not found\n");
+    return NULL;
 }
 
 int start_border(Map *mapa, int r, int c, int leftright) {
-    //TODO
+    //unsigned char cell = mapa->cells[r * mapa->cols + c];
+
+    if (leftright == 0) { //lava ruka
+        if (c == 1){ //vstup z lava
+            if ((r % 2) == 1) { //neparny riadok
+                printf("v podmienke");
+                return 1; //horna hranica
+            } else { //parny riadok
+                return 2; //prava hranica
+            }            
+        }
+        if (r == 1) { //vstup zhora
+            return 2; //prava hranica
+        }
+        if (r == mapa->rows) { //vstup z dola
+            return 1; //lava hranica
+        }
+        if (c == mapa->cols && (r % 2) == 1) { //vstup z prava na hornej hranici
+            return 2; //prava hranica
+        } 
+        if (c == mapa->cols && !((r % 2) == 1)) { //vstup z prava na dolnej hranici
+            return 1; //dolna hranica
+        }
+    } else {
+        if (c == 1){ //vstup z lava
+            if ((r % 2) == 1) { //neparny riadok
+                printf("v podmienke");
+                return 2; //prava hranica
+            } else { //parny riadok
+                return 1; //spodna hranica
+            }            
+        }
+        if (r == 1) { //vstup zhora
+            return 0; //lava hranica
+        }
+        if (r == mapa->rows) { //vstup z dola
+            return 2; //prava hranica
+        }
+        if (c == mapa->cols && (r % 2) == 1) { //vstup z prava na hornej hranici
+            return 1; //horna hranica
+        } 
+        if (c == mapa->cols && !((r % 2) == 1)) { //vstup z prava na dolnej hranici
+            return 0; //lava hranica
+        }
+    }
+    printf("start not found\n");
+    return 3;
+}
+
+void pathFinder() {
+
 }
