@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 typedef struct
 {
@@ -10,7 +11,7 @@ typedef struct
     unsigned char *cells;
 } Map;
 
-void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru);
+void checkArgs(int argc, char *argv, int *r, int *c, int leftright, char *nazovSuboru);
 
 int mapInit(Map *mapa, char *nazovSuboru);
 
@@ -18,7 +19,7 @@ bool isborder(Map *mapa, int r, int c, int border);
 
 int start_border(Map *mapa, int r, int c, int leftright);
 
-//void pathFinder();
+void pathFinder(int r, int c, Map *mapa, int leftright);
 
 int main(int argc, char *argv[])
 {
@@ -30,15 +31,15 @@ int main(int argc, char *argv[])
     //int border;
     Map mapa;
 
-    checkArgs(argc, *argv, r, c, leftright, nazovSuboru);
+    checkArgs(argc, *argv, &r, &c, leftright, nazovSuboru);
     mapInit(&mapa, nazovSuboru);
-    //pathFinder();
+    pathFinder(r, c, &mapa, leftright);
     
     free(mapa.cells);
     return 0;
 }
 
-void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSuboru)
+void checkArgs(int argc, char *argv, int *r, int *c, int leftright, char *nazovSuboru)
 {
     /*r = 2;
     printf("r: %d", r);*/
@@ -61,8 +62,26 @@ void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSub
                 cnt++;
                 j = 0;
                 //printf("printing argument: %s\n", argument);
-
-                if (!(strcmp("--help", argument)))
+                if (isdigit(argument[0]))
+                {
+                    if (*r == 0)
+                    {
+                        *r = atoi(argument);
+                        *r = *r - 1;
+                        printf("Start row: %d\n", *r + 1);
+                    }
+                    else if (*c == 0)
+                    {
+                        *c = atoi(argument);
+                        *c = *c - 1;
+                        printf("Start column: %d\n", *c + 1);
+                    }
+                    else
+                    {
+                        fprintf(stderr, "Prilis vela vstupnych suradnic\n");
+                        exit(1);
+                    }
+                }else if (!(strcmp("--help", argument)))
                 {
                     printf("do this blah blah blah\n");
                     ///TO DO
@@ -75,12 +94,11 @@ void checkArgs(int argc, char *argv, int r, int c, int leftright, char *nazovSub
                 } else if (!(strcmp("--rpath", argument)))
                 { 
                     leftright = 1; //pravidlo pravej ruky
+                } else if (strstr(argument, ".txt") != NULL)
+                {
+                    strcpy(nazovSuboru, argument);
+                    printf("file name valid\n");
                 }
-                if (strstr(argument, ".txt") != NULL)
-                    {
-                        strcpy(nazovSuboru, argument);
-                        printf("file name valid\n");
-                } 
             }
         }
     } else {
@@ -162,9 +180,11 @@ bool isborder(Map *mapa, int r, int c, int border) {
         return true;
     } else if (border == 2 && (cell == 2 || cell == 3 || cell == 6 || cell == 7)) {
         return true;
+    } else {
+        return false;
     }
-    printf("case not found\n");
-    return NULL;
+    /*printf("case not found\n");
+    return NULL; */
 }
 
 int start_border(Map *mapa, int r, int c, int leftright) {
@@ -217,6 +237,119 @@ int start_border(Map *mapa, int r, int c, int leftright) {
     return 3;
 }
 
-void pathFinder() {
+void pathFinder(int r, int c, Map *mapa, int leftright) {
+    int direction; //up = 0, right = 1, left = 2, down = 3
+    while (1)
+    {
+        if (r < 0 || r >= mapa->rows || c < 0 || c >= mapa->cols) {
+            printf("out of bounds\n");
+            return;
+        }
+        printf("[%d, %d]", r+1, c+1);
+        if (leftright) /*prava ruka*/ {
+            if ((r + c)%2) /*neparny sucet suradnic - trojuholnik orientovany nahor*/ {
+                if (direction == 1) /*smer do prava*/ {
+                    if (isborder(mapa, r, c, 1)) /*checknut dolnu hranicu */ {
+                        if (isborder(mapa, r, c, 2)) /*checknut pravu hranicu*/ {
+                            c--; //move left - go back
+                            direction = 2; //smer do lava
+                            continue;
+                        } else {
+                            c++; //move right
+                            direction = 1; //smer do prava
+                            continue;
+                        }
+                    } else {
+                        r++; //move down
+                        direction = 3;
+                        continue;
+                    }
+                } else if (direction == 2) /*smer do lava*/ {
+                    if (isborder(mapa, r, c, 0)) /*checknut lavu hranicu */ {
+                        if (isborder(mapa, r, c, 1)) /*checknut dolnu hranicu*/ {
+                            c++; //move right - go back
+                            direction = 1; //smer do prava
+                            continue;
+                        } else {
+                            r++; //move down
+                            direction = 3; //smer dole
+                            continue;
+                        }
+                    } else {
+                        c--; //move left
+                        direction = 2; //smer do lava
+                        continue;
+                    }
+                } else if (direction == 0) /*smer hore*/ {
+                    if (isborder(mapa, r, c, 2)) /*checknut pravu hranicu */ {
+                        if (isborder(mapa, r, c, 0)) /*checknut lavu hranicu*/ {
+                            r++; //move down - go back
+                            direction = 3; //smer dole
+                            continue;
+                        } else {
+                            c--; //move left
+                            direction = 2; //smer do lava
+                            continue;
+                        }
+                    } else {
+                        c++; //move right
+                        direction = 1; //smer do prava
+                        continue;
+                    }
+            } else { //parny sucet suradnic - trojuholnik orientovany nadol
+                if (direction == 1) /*smer do prava*/ {
+                    if (isborder(mapa, r, c, 2)) /*checknut pravu hranicu */ {
+                        if (isborder(mapa, r, c, 1)) /*checknut hornu hranicu*/ {
+                            c--; //move left - go back
+                            direction = 2; //smer do lava
+                            continue;
+                        } else {
+                            r--; //move up
+                            direction = 0; //smer hore
+                            continue;
+                        }
+                    } else {
+                        c++; //move right
+                        direction = 1; //smer do prava 
+                        continue;
+                    }
+                } else if (direction == 3) /*smer dole*/ {
+                    if (isborder(mapa, r, c, 0)) /*checknut lavu hranicu */ {
+                        if (isborder(mapa, r, c, 2)) /*checknut pravu hranicu*/ {
+                            r--; //move up - go back
+                            direction = 0; //smer hore
+                            continue;
+                        } else {
+                            c++; //move right
+                            direction = 1; //smer do prava
+                            continue;
+                        }
+                    } else {
+                        c--; //move left
+                        direction = 2; //smer do lava
+                        continue;
+                    }
+                } else if (direction == 2) /*smer do lava*/ {
+                    if (isborder(mapa, r, c, 1)) /*checknut hornu hranicu */ {
+                        if (isborder(mapa, r, c, 0)) /*checknut lavu hranicu*/ {
+                            c++; //move right - go back
+                            direction = 1; //smer do prava
+                            continue;
+                        } else {
+                            c--; //move left
+                            direction = 2; //smer do lava
+                            continue;
+                        }
+                    } else {
+                        r--; //move up
+                        direction = 0; //smer hore
+                        continue;
+                    }
+                }
+            }
+        } else /*lava ruka*/ {
 
+        }
+    }
+    }
 }
