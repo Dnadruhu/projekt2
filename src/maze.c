@@ -11,7 +11,7 @@ typedef struct
     unsigned char *cells;
 } Map;
 
-void checkArgs(int argc, char *argv, int *r, int *c, int *leftright, char *nazovSuboru);
+void checkArgs(Map *mapa, int argc, char *argv, int *r, int *c, int *leftright, char *nazovSuboru);
 
 int mapInit(Map *mapa, char *nazovSuboru);
 
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     int direction = 0;
     Map mapa;
 
-    checkArgs(argc, *argv, &r, &c, &leftright, nazovSuboru);
+    checkArgs(&mapa, argc, *argv, &r, &c, &leftright, nazovSuboru);
     mapInit(&mapa, nazovSuboru);
     direction = start_border(&mapa, r, c, leftright);
     pathFinder(&r, &c, &mapa, leftright, &direction);
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void checkArgs(int argc, char *argv, int *r, int *c, int *leftright, char *nazovSuboru)
+void checkArgs(Map *mapa, int argc, char *argv, int *r, int *c, int *leftright, char *nazovSuboru)
 {
     /*r = 2;
     printf("r: %d", r);*/
@@ -62,20 +62,17 @@ void checkArgs(int argc, char *argv, int *r, int *c, int *leftright, char *nazov
                 argument[j] = '\0';
                 cnt++;
                 j = 0;
-                //printf("printing argument: %s\n", argument);
                 if (isdigit(argument[0]))
                 {
                     if (*r == 0)
                     {
                         *r = atoi(argument);
                         *r = *r - 1;
-                        printf("Start row: %d\n", *r + 1);
                     }
                     else if (*c == 0)
                     {
                         *c = atoi(argument);
                         *c = *c - 1;
-                        printf("Start column: %d\n", *c + 1);
                     }
                     else
                     {
@@ -84,11 +81,40 @@ void checkArgs(int argc, char *argv, int *r, int *c, int *leftright, char *nazov
                     }
                 }else if (!(strcmp("--help", argument)))
                 {
-                    printf("do this blah blah blah\n");
-                    ///TO DO
+                    printf("|********************************************|\n"
+                           "|                MAZERUNNER                  |\n"
+                           "|                                            |\n"
+                           "|USAGE: create a 2D maze in .txt file and    |\n"
+                           "|let the script solve it for you.            |\n"
+                           "|                                            |\n"
+                           "|--------------------------------------------|\n"
+                           "|                                            |\n"
+                           "|INSTRUCTIONS: run the executable i.e. ./Maze|\n"
+                           "|and use these arguments:                    |\n"
+                           "|path - select path = '--rpath'/'--lpath'    |\n"
+                           "|row - select the row where the mazerunner   |\n"
+                           "|should start (integer only)                 |\n"
+                           "|column - select the column where the        |\n"
+                           "|mazerunner should start (integer only)      |\n"
+                           "|source - type in the name of the source file|\n"
+                           "|where your maze is stored (must end w/.txt) |\n"
+                           "|*you can check the validity of maze map by *|\n"
+                           "|*running the code with '--test' argument   *|\n"
+                           "|                                            |\n"
+                           "|--------------------------------------------|\n"
+                           "|                                            |\n"
+                           "|EXAMPLE: ./Maze --lpath 6 1 bludiste.txt    |\n"
+                           "|********************************************|\n");
+                    exit(1);
                 } else if (!(strcmp("--test", argument)))
                 { 
-                    ///TO DO  
+                    if (mapInit(mapa, nazovSuboru))
+                    {
+                        printf("Valid");
+                    } else {
+                        printf("Invalid");
+                    }
+                    
                 } else if (!(strcmp("--lpath", argument)))
                 { 
                     *leftright = 0; // pravidlo lavej ruky
@@ -114,14 +140,10 @@ int mapInit(Map *mapa, char *nazovSuboru)
 
     if (subor != NULL)
     {
-
         char buffer[sizeof(mapa->cols)*sizeof(mapa->rows)];
-        
-        if (fgets(buffer, sizeof(buffer), subor) != NULL)
-        {
+        if (fgets(buffer, sizeof(buffer), subor) != NULL) {
             mapa->rows = atoi(&buffer[0]);
             mapa->cols = atoi(&buffer[2]);
-            //printf("Velkost pola: %s\n",buffer);
 
             mapa->cells = malloc(mapa->rows * mapa->cols * sizeof(unsigned char));
 
@@ -141,17 +163,7 @@ int mapInit(Map *mapa, char *nazovSuboru)
                     return 0;
                 }
             }
-            //return 1;
-            for (int i = 0; i < mapa->rows; i++)
-            {
-                for (int j = 0; j < mapa->cols; j++)
-                {
-                    printf("%hhu ", mapa->cells[i * mapa->cols + j]);
-                }
-                printf("\n");
-            }// NEVYPISE NIC KVOLI RETURN 1
-            return 1;
-            
+            return 1;            
         }
         else
         {
@@ -184,8 +196,6 @@ bool isborder(Map *mapa, int r, int c, int border) {
     } else {
         return false;
     }
-    /*printf("case not found\n");
-    return NULL; */
 }
 
 int start_border(Map *mapa, int r, int c, int leftright) {
@@ -206,14 +216,14 @@ int start_border(Map *mapa, int r, int c, int leftright) {
 void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
     //directions -> up = 0, right = 1, left = 2, down = 3
     int a = 50;
-    //while (1)
     while (a)
+    //while (1)
     {
         if (*r < 0 || *r >= mapa->rows || *c < 0 || *c >= mapa->cols) {
             printf("out of bounds\n");
             return;
         }
-        printf("%d, %d, direction: %d\n", *r+1, *c+1, *direction);
+        printf("%d,%d\n", *r+1, *c+1);
         if (leftright) /*prava ruka*/ {
             //printf("v podmienke 1\n((*r + *c)2) == 0: %d\n", ((*r + *c)%2) == 0);
             if ((*r + *c)%2) /*neparny sucet suradnic - trojuholnik orientovany nahor*/ {
@@ -272,17 +282,17 @@ void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
                         *direction = 1; //smer do prava 
                     }
                 } else if (*direction == 3) /*smer dole*/ {
-                    if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu */ {
-                        if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu*/ {
+                    if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu */ {
+                        if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu*/ {
                             *r = *r - 1; //move up - go back
                             *direction = 0; //smer hore
                         } else {
-                            *c = *c - 1; //move left
-                            *direction = 2; //smer do lava
+                            *c = *c + 1; //move right
+                            *direction = 1; //smer do prava
                         }
                     } else {
-                        *c = *c + 1; //move right
-                        *direction = 1; //smer do prava
+                        *c = *c - 1; //move left
+                        *direction = 2; //smer do lava
                     }
                 } else if (*direction == 2) /*smer do lava*/ {
                     if (isborder(mapa, *r, *c, 1)) /*checknut hornu hranicu */ {
@@ -358,7 +368,7 @@ void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
                     }
                 } else if (*direction == 3) /*smer dole*/ {
                     if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu */ {
-                        if (isborder(mapa, *r, *c, 1)) /*checknut lavu hranicu*/ {
+                        if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu*/ {
                             *r = *r - 1; //move up - go back
                             *direction = 0; //smer hore
                         } else {
@@ -370,8 +380,8 @@ void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
                         *direction = 1; //smer do prava
                     }
                 } else if (*direction == 2) /*smer do lava*/ {
-                    if (isborder(mapa, *r, *c, 1)) /*checknut lavu hranicu */ {
-                        if (isborder(mapa, *r, *c, 0)) /*checknut hornu hranicu*/ {
+                    if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu */ {
+                        if (isborder(mapa, *r, *c, 1)) /*checknut hornu hranicu*/ {
                             *c = *c + 1; //move right - go back
                             *direction = 1; //smer do prava
                         } else {
@@ -385,6 +395,6 @@ void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
                 }
             }
         }
-    a--;
+        a--;
     }
 }
