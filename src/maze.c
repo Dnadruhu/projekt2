@@ -205,15 +205,15 @@ int start_border(Map *mapa, int r, int c, int leftright) {
 
 void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
     //directions -> up = 0, right = 1, left = 2, down = 3
-    int a = 6;
-    while (1)
-    //while (a)
+    int a = 50;
+    //while (1)
+    while (a)
     {
         if (*r < 0 || *r >= mapa->rows || *c < 0 || *c >= mapa->cols) {
             printf("out of bounds\n");
             return;
         }
-        printf("%d, %d\n", *r+1, *c+1);
+        printf("%d, %d, direction: %d\n", *r+1, *c+1, *direction);
         if (leftright) /*prava ruka*/ {
             //printf("v podmienke 1\n((*r + *c)2) == 0: %d\n", ((*r + *c)%2) == 0);
             if ((*r + *c)%2) /*neparny sucet suradnic - trojuholnik orientovany nahor*/ {
@@ -222,48 +222,39 @@ void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
                         if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu*/ {
                             *c = *c - 1; //move left - go back
                             *direction = 2; //smer do lava
-                            //continue;
                         } else {
                             *c = *c + 1; //move right
                             *direction = 1; //smer do prava
-                            //continue;
                         }
                     } else {
                         *r = *r + 1; //move down
                         *direction = 3;
-                        //continue;
                     }
                 } else if (*direction == 2) /*smer do lava*/ {
                     if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu */ {
                         if (isborder(mapa, *r, *c, 1)) /*checknut dolnu hranicu*/ {
                             *c = *c + 1; //move right - go back
                             *direction = 1; //smer do prava
-                            //continue;
                         } else {
                             *r = *r + 1; //move down
                             *direction = 3; //smer dole
-                            //continue;
                         }
                     } else {
                         *c = *c - 1; //move left
                         *direction = 2; //smer do lava
-                        //continue;
                     }
                 } else if (*direction == 0) /*smer hore*/ {
                     if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu */ {
                         if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu*/ {
                             *r = *r + 1; //move down - go back
                             *direction = 3; //smer dole
-                            //continue;
                         } else {
                             *c = *c - 1; //move left
                             *direction = 2; //smer do lava
-                            //continue;
                         }
                     } else {
                         *c = *c + 1; //move right
                         *direction = 1; //smer do prava
-                        //continue;
                     }
                 }
             } else if (((*r + *c)%2) == 0) { //parny sucet suradnic - trojuholnik orientovany nadol
@@ -272,54 +263,128 @@ void pathFinder(int *r, int *c, Map *mapa, int leftright, int *direction) {
                         if (isborder(mapa, *r, *c, 1)) /*checknut hornu hranicu*/ {
                             *c = *c - 1; //move left - go back
                             *direction = 2; //smer do lava
-                            //continue;
                         } else {
                             *r = *r - 1; //move up
                             *direction = 0; //smer hore
-                            //continue;
                         }
                     } else {
                         *c = *c + 1; //move right
                         *direction = 1; //smer do prava 
-                        //continue;
                     }
                 } else if (*direction == 3) /*smer dole*/ {
-                    if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu */ {
-                        if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu*/ {
+                    if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu */ {
+                        if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu*/ {
                             *r = *r - 1; //move up - go back
                             *direction = 0; //smer hore
-                            //continue;
                         } else {
-                            *c = *c + 1; //move right
-                            *direction = 1; //smer do prava
-                            //continue;
+                            *c = *c - 1; //move left
+                            *direction = 2; //smer do lava
                         }
                     } else {
-                        *c = *c - 1; //move left
-                        *direction = 2; //smer do lava
-                        //continue;
+                        *c = *c + 1; //move right
+                        *direction = 1; //smer do prava
                     }
                 } else if (*direction == 2) /*smer do lava*/ {
                     if (isborder(mapa, *r, *c, 1)) /*checknut hornu hranicu */ {
                         if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu*/ {
                             *c = *c + 1; //move right - go back
                             *direction = 1; //smer do prava
-                            //continue;
                         } else {
                             *c = *c - 1; //move left
                             *direction = 2; //smer do lava
-                            //continue;
                         }
                     } else {
                         *r = *r - 1; //move up
                         *direction = 0; //smer hore
-                        //continue;
                     }
                 }
             }
-        } else /*lava ruka*/ {
-
+        } else { /*lava ruka*/
+            //directions -> up = 0, right = 1, left = 2, down = 3
+            if ((*r + *c)%2) /*neparny sucet suradnic - trojuholnik orientovany nahor*/ {
+                if (*direction == 1) /*smer do prava*/ {
+                    if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu */ {
+                        if (isborder(mapa, *r, *c, 1)) /*checknut dolnu hranicu*/ {
+                            *c = *c - 1; //move left - go back
+                            *direction = 2; //smer do lava
+                        } else {
+                            *r = *r + 1; //move down
+                            *direction = 3; //smer dole
+                        }
+                    } else {
+                        *c = *c + 1; //move right
+                        *direction = 1; //smer do prava
+                    }
+                } else if (*direction == 2) /*smer do lava*/ {
+                    if (isborder(mapa, *r, *c, 1)) /*checknut dolnu hranicu */ {
+                        if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu*/ {
+                            *c = *c + 1; //move right - go back
+                            *direction = 1; //smer do prava
+                        } else {
+                            *c = *c - 1; //move left
+                            *direction = 2; //smer do lava
+                        }
+                    } else {
+                        *r = *r + 1; //move down
+                        *direction = 3; //smer dole
+                    }
+                } else if (*direction == 0) /*smer hore*/ {
+                    if (isborder(mapa, *r, *c, 0)) /*checknut lavu hranicu */ {
+                        if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu*/ {
+                            *r = *r + 1; //move down - go back
+                            *direction = 3; //smer dole
+                        } else {
+                            *c = *c + 1; //move right
+                            *direction = 1; //smer do prava
+                        }
+                    } else {
+                        *c = *c - 1; //move left
+                        *direction = 2; //smer do lava
+                    }
+                }
+            } else if (((*r + *c)%2) == 0) { //parny sucet suradnic - trojuholnik orientovany nadol
+                if (*direction == 1) /*smer do prava*/ {
+                    if (isborder(mapa, *r, *c, 1)) /*checknut hornu hranicu */ {
+                        if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu*/ {
+                            *c = *c - 1; //move left - go back
+                            *direction = 2; //smer do lava
+                        } else {
+                            *c = *c + 1; //move right
+                            *direction = 1; //smer do prava
+                        }
+                    } else {
+                        *r = *r - 1; //move up
+                        *direction = 0; //smer hore 
+                    }
+                } else if (*direction == 3) /*smer dole*/ {
+                    if (isborder(mapa, *r, *c, 2)) /*checknut pravu hranicu */ {
+                        if (isborder(mapa, *r, *c, 1)) /*checknut lavu hranicu*/ {
+                            *r = *r - 1; //move up - go back
+                            *direction = 0; //smer hore
+                        } else {
+                            *c = *c - 1; //move left
+                            *direction = 1; //smer do lava
+                        }
+                    } else {
+                        *c = *c + 1; //move right
+                        *direction = 1; //smer do prava
+                    }
+                } else if (*direction == 2) /*smer do lava*/ {
+                    if (isborder(mapa, *r, *c, 1)) /*checknut lavu hranicu */ {
+                        if (isborder(mapa, *r, *c, 0)) /*checknut hornu hranicu*/ {
+                            *c = *c + 1; //move right - go back
+                            *direction = 1; //smer do prava
+                        } else {
+                            *r = *r - 1; //move up
+                            *direction = 0; //smer hore
+                        }
+                    } else {
+                        *c = *c - 1; //move left
+                        *direction = 2; //smer do lava
+                    }
+                }
+            }
         }
-    //a--;
+    a--;
     }
 }
